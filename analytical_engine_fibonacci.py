@@ -112,8 +112,10 @@ def sonify(sequence, period, out_path, base_note=60, scale="pentatonic",
            note_len_beats=0.5, tempo_bpm=132, repeats=2):
     """
     Write `sequence` to a MIDI file, repeated `repeats` times so the
-    listener can hear the Pisano period loop back on itself. A short
-    triangle "ding" marks each loop boundary.
+    listener can hear the Pisano period loop back on itself. The first
+    note of each pass is doubled an octave up, as an audible marker of
+    the loop boundary that works on whatever instrument plays it back
+    (no reliance on a GM percussion channel).
     """
     mid = mido.MidiFile()
     track = mido.MidiTrack()
@@ -131,15 +133,10 @@ def sonify(sequence, period, out_path, base_note=60, scale="pentatonic",
         for i, value in enumerate(period_seq):
             note = value_to_note(value, base_note, scale)
             if i == 0:
-                # mark the start of each pass through the period, sounding
-                # together with the downbeat note rather than delaying it
-                # (delaying it would push every subsequent note off the
-                # tempo grid, a little more with each repeat)
-                ding_ticks = note_ticks // 4
-                track.append(mido.Message("note_on", note=81, velocity=90, channel=9, time=0))
-                track.append(mido.Message("note_on", note=note, velocity=80, channel=0, time=0))
-                track.append(mido.Message("note_off", note=81, velocity=0, channel=9, time=ding_ticks))
-                track.append(mido.Message("note_off", note=note, velocity=0, channel=0, time=note_ticks - ding_ticks))
+                track.append(mido.Message("note_on", note=note, velocity=90, channel=0, time=0))
+                track.append(mido.Message("note_on", note=note + 12, velocity=70, channel=0, time=0))
+                track.append(mido.Message("note_off", note=note, velocity=0, channel=0, time=note_ticks))
+                track.append(mido.Message("note_off", note=note + 12, velocity=0, channel=0, time=0))
             else:
                 track.append(mido.Message("note_on", note=note, velocity=80, channel=0, time=0))
                 track.append(mido.Message("note_off", note=note, velocity=0, channel=0, time=note_ticks))

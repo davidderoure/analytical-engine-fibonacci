@@ -17,8 +17,8 @@ It contains:
   point at which the sequence of Fibonacci numbers mod *n* starts repeating.
 - **Sonification**: the sequence is mapped onto a musical scale and written
   out as a MIDI file (via [`mido`](https://mido.readthedocs.io/)), looped
-  twice so you can *hear* the period repeat, with a short percussive "ding"
-  marking each loop boundary.
+  twice so you can *hear* the period repeat, with the first note of each
+  pass doubled an octave up to mark the loop boundary.
 
 ## Usage
 
