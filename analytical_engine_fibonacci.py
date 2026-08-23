@@ -131,11 +131,18 @@ def sonify(sequence, period, out_path, base_note=60, scale="pentatonic",
         for i, value in enumerate(period_seq):
             note = value_to_note(value, base_note, scale)
             if i == 0:
-                # mark the start of each pass through the period
+                # mark the start of each pass through the period, sounding
+                # together with the downbeat note rather than delaying it
+                # (delaying it would push every subsequent note off the
+                # tempo grid, a little more with each repeat)
+                ding_ticks = note_ticks // 4
                 track.append(mido.Message("note_on", note=81, velocity=90, channel=9, time=0))
-                track.append(mido.Message("note_off", note=81, velocity=0, channel=9, time=note_ticks // 4))
-            track.append(mido.Message("note_on", note=note, velocity=80, channel=0, time=0))
-            track.append(mido.Message("note_off", note=note, velocity=0, channel=0, time=note_ticks))
+                track.append(mido.Message("note_on", note=note, velocity=80, channel=0, time=0))
+                track.append(mido.Message("note_off", note=81, velocity=0, channel=9, time=ding_ticks))
+                track.append(mido.Message("note_off", note=note, velocity=0, channel=0, time=note_ticks - ding_ticks))
+            else:
+                track.append(mido.Message("note_on", note=note, velocity=80, channel=0, time=0))
+                track.append(mido.Message("note_off", note=note, velocity=0, channel=0, time=note_ticks))
 
     mid.save(out_path)
     return out_path
