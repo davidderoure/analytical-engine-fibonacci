@@ -109,13 +109,20 @@ def value_to_note(value, base_note, scale):
 
 
 def sonify(sequence, period, out_path, base_note=60, scale="pentatonic",
-           note_len_beats=0.5, tempo_bpm=132, repeats=2):
+           note_len_beats=0.5, tempo_bpm=132, repeats=2, mark_loops=False):
     """
     Write `sequence` to a MIDI file, repeated `repeats` times so the
-    listener can hear the Pisano period loop back on itself. The first
-    note of each pass is doubled an octave up, as an audible marker of
-    the loop boundary that works on whatever instrument plays it back
-    (no reliance on a GM percussion channel).
+    listener can hear the Pisano period loop back on itself.
+
+    Notes are written in the register value_to_note() produces, with no
+    modification -- so the file can be split by register (e.g. a
+    vertical slice around middle C onto two instruments) without a loop
+    marker distorting it.
+
+    If `mark_loops` is True, a GM percussion "open triangle" hit on
+    channel 10 marks the start of each pass. This relies on the
+    playback instrument honouring the GM percussion channel, so it is
+    opt-in rather than the default.
     """
     mid = mido.MidiFile()
     track = mido.MidiTrack()
@@ -126,17 +133,21 @@ def sonify(sequence, period, out_path, base_note=60, scale="pentatonic",
 
     ticks = mid.ticks_per_beat
     note_ticks = int(ticks * note_len_beats)
+    ding_ticks = note_ticks // 4
 
     period_seq = sequence[1:period + 1] if period else sequence[1:]
 
     for r in range(repeats):
         for i, value in enumerate(period_seq):
             note = value_to_note(value, base_note, scale)
-            if i == 0:
-                track.append(mido.Message("note_on", note=note, velocity=90, channel=0, time=0))
-                track.append(mido.Message("note_on", note=note + 12, velocity=70, channel=0, time=0))
-                track.append(mido.Message("note_off", note=note, velocity=0, channel=0, time=note_ticks))
-                track.append(mido.Message("note_off", note=note + 12, velocity=0, channel=0, time=0))
+            if mark_loops and i == 0:
+                # ding sounds together with the downbeat note, not before
+                # it -- delaying the downbeat would push every subsequent
+                # note off the tempo grid, a little more with each repeat
+                track.append(mido.Message("note_on", note=81, velocity=90, channel=9, time=0))
+                track.append(mido.Message("note_on", note=note, velocity=80, channel=0, time=0))
+                track.append(mido.Message("note_off", note=81, velocity=0, channel=9, time=ding_ticks))
+                track.append(mido.Message("note_off", note=note, velocity=0, channel=0, time=note_ticks - ding_ticks))
             else:
                 track.append(mido.Message("note_on", note=note, velocity=80, channel=0, time=0))
                 track.append(mido.Message("note_off", note=note, velocity=0, channel=0, time=note_ticks))
@@ -162,6 +173,10 @@ def main():
     parser.add_argument("--repeats", type=int, default=2, help="times to loop the period")
     parser.add_argument("--trace-limit", type=trace_limit_type, default=20,
                          help="max operation-card rows to print ('all' for no limit)")
+    parser.add_argument("--mark-loops", action="store_true",
+                         help="add a channel-10 GM percussion hit at the start of each loop "
+                              "(requires a GM-aware drum kit on channel 10 to sound right; "
+                              "off by default so note registers stay untouched)")
     args = parser.parse_args()
 
     out_path = args.out or f"fib_pisano_n{args.n}.mid"
@@ -179,7 +194,8 @@ def main():
     print(f"Total engine operations: {engine.op_count}")
 
     sonify(sequence, period, out_path, base_note=args.base_note, scale=args.scale,
-           note_len_beats=args.note_len, tempo_bpm=args.tempo, repeats=args.repeats)
+           note_len_beats=args.note_len, tempo_bpm=args.tempo, repeats=args.repeats,
+           mark_loops=args.mark_loops)
     print(f"\nWrote {args.repeats} repeats of the period to: {out_path}")
 
 

@@ -17,8 +17,10 @@ It contains:
   point at which the sequence of Fibonacci numbers mod *n* starts repeating.
 - **Sonification**: the sequence is mapped onto a musical scale and written
   out as a MIDI file (via [`mido`](https://mido.readthedocs.io/)), looped
-  twice so you can *hear* the period repeat, with the first note of each
-  pass doubled an octave up to mark the loop boundary.
+  twice so you can *hear* the period repeat. Notes are written exactly in
+  the register `value_to_note()` produces, with nothing added — so the
+  file can be split by register (e.g. a vertical slice around middle C
+  onto two instruments) without any extra note distorting it.
 
 ## Usage
 
@@ -52,6 +54,7 @@ Open the output file in any DAW or MIDI player (see
 | `--note-len` | note length in beats | `0.5` |
 | `--repeats` | number of times to loop the period | `2` |
 | `--trace-limit` | max operation-card rows printed | `20` |
+| `--mark-loops` | add a channel-10 GM percussion hit at the start of each loop | off |
 
 ### Examples
 
@@ -67,6 +70,11 @@ python3 analytical_engine_fibonacci.py --n 12 --scale major --tempo 90 --note-le
 
 # start an octave lower, and print the full operation trace
 python3 analytical_engine_fibonacci.py --n 12 --base-note 48 --trace-limit all
+
+# mark each loop boundary with a channel-10 percussion hit (needs a
+# GM-aware drum kit on channel 10 to actually sound like percussion —
+# see Listening tips)
+python3 analytical_engine_fibonacci.py --n 12 --mark-loops
 ```
 
 An example output is in [`examples/fib_pisano_n12.mid`](examples/fib_pisano_n12.mid)
@@ -81,12 +89,22 @@ sounds different depending on what plays it back:
   suits the plucked, arpeggio-like character of the sequence particularly
   well.
 - **Restricting the register introduces rhythm.** Because `value_to_note`
-  spreads values across several octaves (see the mapping table in the repo
-  discussion), narrowing the instrument's audible range — or transposing /
-  filtering to a "vertical slice" of the output in your DAW — drops out
-  every note that falls outside it. What's left is no longer a continuous
-  melodic line but a sparser, syncopated pattern: the numeric structure of
-  the Pisano sequence starts to read as rhythm rather than pitch.
+  spreads values across several octaves, narrowing the instrument's
+  audible range — or splitting the output onto two instruments around a
+  fixed pitch (e.g. everything below middle C to harp, everything above
+  to piano) — drops out or reroutes notes outside each range. What's left
+  reads as a sparser, syncopated pattern: the numeric structure of the
+  Pisano sequence starts to sound like rhythm rather than pitch. Notes
+  are never nudged out of their generated register to make room for
+  anything else (see `--mark-loops` below), so a register split behaves
+  predictably.
+- **Marking loop boundaries.** By default nothing is added to mark where
+  the period repeats — mark loop points manually in your DAW instead, or
+  pass `--mark-loops` to add a channel-10 GM percussion hit at each
+  boundary. That flag depends on the receiving instrument actually
+  mapping channel 10 to a drum kit; on a plain single-instrument track it
+  will just play as an ordinary (and out-of-register) note on that
+  instrument, which is exactly what register-slicing wants to avoid.
 
 ## Background
 
