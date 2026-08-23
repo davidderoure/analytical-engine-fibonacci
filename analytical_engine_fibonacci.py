@@ -141,6 +141,12 @@ def sonify(sequence, period, out_path, base_note=60, scale="pentatonic",
     return out_path
 
 
+def trace_limit_type(value):
+    if value.lower() == "all":
+        return None
+    return int(value)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--n", type=int, default=12, help="modulus n (default 12)")
@@ -150,8 +156,8 @@ def main():
     parser.add_argument("--tempo", type=int, default=132, help="tempo in BPM")
     parser.add_argument("--note-len", type=float, default=0.5, help="note length in beats")
     parser.add_argument("--repeats", type=int, default=2, help="times to loop the period")
-    parser.add_argument("--trace-limit", type=int, default=20,
-                         help="max operation-card rows to print (None for all)")
+    parser.add_argument("--trace-limit", type=trace_limit_type, default=20,
+                         help="max operation-card rows to print ('all' for no limit)")
     args = parser.parse_args()
 
     out_path = args.out or f"fib_pisano_n{args.n}.mid"

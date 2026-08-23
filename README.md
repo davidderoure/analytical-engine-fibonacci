@@ -22,15 +22,25 @@ It contains:
 
 ## Usage
 
+Install the one dependency, then run the script with a modulus `--n`:
+
 ```bash
 pip install -r requirements.txt
 python3 analytical_engine_fibonacci.py --n 12
 ```
 
-This prints the Mill's operation-card trace, the sequence, and π(*n*), and
-writes a MIDI file (default `fib_pisano_n12.mid`).
+This does three things:
 
-Options:
+1. Runs the Fibonacci-mod-*n* algorithm on the simulated Engine and prints
+   the Mill's operation-card trace (capped at `--trace-limit` rows).
+2. Prints the resulting sequence and the Pisano period π(*n*).
+3. Writes a MIDI file — by default `fib_pisano_n<n>.mid` in the current
+   directory — containing `--repeats` loops of the period.
+
+Open the output file in any DAW or MIDI player (see
+[Listening tips](#listening-tips) below).
+
+### Options
 
 | Flag | Meaning | Default |
 |---|---|---|
@@ -43,8 +53,40 @@ Options:
 | `--repeats` | number of times to loop the period | `2` |
 | `--trace-limit` | max operation-card rows printed | `20` |
 
+### Examples
+
+```bash
+# default: n=12, minor pentatonic, one octave centred on middle C
+python3 analytical_engine_fibonacci.py --n 12
+
+# a bigger modulus — longer period, wider melodic range
+python3 analytical_engine_fibonacci.py --n 30 --out fib30.mid
+
+# major scale, slower tempo, longer notes, four loops
+python3 analytical_engine_fibonacci.py --n 12 --scale major --tempo 90 --note-len 1 --repeats 4
+
+# start an octave lower, and print the full operation trace
+python3 analytical_engine_fibonacci.py --n 12 --base-note 48 --trace-limit all
+```
+
 An example output is in [`examples/fib_pisano_n12.mid`](examples/fib_pisano_n12.mid)
 (π(12) = 24).
+
+## Listening tips
+
+The MIDI file is deliberately plain (one instrument, fixed velocity) so it
+sounds different depending on what plays it back:
+
+- **Instrument choice matters a lot.** A harp patch (e.g. in Logic Pro)
+  suits the plucked, arpeggio-like character of the sequence particularly
+  well.
+- **Restricting the register introduces rhythm.** Because `value_to_note`
+  spreads values across several octaves (see the mapping table in the repo
+  discussion), narrowing the instrument's audible range — or transposing /
+  filtering to a "vertical slice" of the output in your DAW — drops out
+  every note that falls outside it. What's left is no longer a continuous
+  melodic line but a sparser, syncopated pattern: the numeric structure of
+  the Pisano sequence starts to read as rhythm rather than pitch.
 
 ## Background
 
