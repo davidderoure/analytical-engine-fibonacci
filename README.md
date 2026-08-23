@@ -77,8 +77,22 @@ python3 analytical_engine_fibonacci.py --n 12 --base-note 48 --trace-limit all
 python3 analytical_engine_fibonacci.py --n 12 --mark-loops
 ```
 
-An example output is in [`examples/fib_pisano_n12.mid`](examples/fib_pisano_n12.mid)
-(π(12) = 24).
+### Example outputs
+
+| File | `--n` | π(*n*) | Scale | Base note | Tempo | Notes |
+|---|---|---|---|---|---|---|
+| [`fib_pisano_n12.mid`](examples/fib_pisano_n12.mid) | 12 | 24 | pentatonic | C4 (60) | 132 | the default settings |
+| [`fib_pisano_n7_minor.mid`](examples/fib_pisano_n7_minor.mid) | 7 | 16 | minor | C4 (60) | 120 | short loop, narrow range |
+| [`fib_pisano_n17_major.mid`](examples/fib_pisano_n17_major.mid) | 17 | 36 | major | A3 (57) | 110 | longer period, brighter |
+| [`fib_pisano_n25_chromatic.mid`](examples/fib_pisano_n25_chromatic.mid) | 25 | 100 | chromatic | C3 (48), sixteenth notes | 140 | long, dense, twelve-tone-ish |
+| [`fib_pisano_n11_pentatonic_hi.mid`](examples/fib_pisano_n11_pentatonic_hi.mid) | 11 | 10 | pentatonic | C5 (72), 4 repeats | 160 | very short loop, high register |
+
+Regenerate any of them, e.g.:
+
+```bash
+python3 analytical_engine_fibonacci.py --n 25 --scale chromatic --base-note 48 \
+    --note-len 0.25 --tempo 140 --out examples/fib_pisano_n25_chromatic.mid
+```
 
 ## Listening tips
 
